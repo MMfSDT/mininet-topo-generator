@@ -10,6 +10,18 @@ from random import randint
 
 from router.p4_mininet import P4Switch, P4Host
 
+
+
+###### INSERT PATHS HERE ######
+
+exec_path = '../behavioral-model/targets/simple_router/simple_router'
+json_path = './router/simple_router.json'
+cli_path = '../behavioral-model/tools/runtime_CLI.py'
+
+###############################
+
+
+
 if '__main__' == __name__:
 	setLogLevel('info')
 	net = Mininet(controller=None)
@@ -67,8 +79,8 @@ if '__main__' == __name__:
 	edge = [[
 	net.addSwitch('se%d%d'%(pod,i),
 		cls = P4Switch,
- 		sw_path = './router/simple_router',
-		json_path = './router/simple_router.json',
+ 		sw_path = exec_path,
+		json_path = json_path,
 		thrift_port = edge_port[pod][i],
 		pcap_dump = False)
 	for i in range(K/2)]
@@ -77,8 +89,8 @@ if '__main__' == __name__:
 	agg = [[
 	net.addSwitch('sa%d%d'%(pod,i),
 		cls = P4Switch,
-		sw_path = './router/simple_router',
-		json_path = './router/simple_router.json',
+		sw_path = exec_path,
+		json_path = json_path,
 		thrift_port = agg_port[pod][i],
 		pcap_dump = False)
 	for i in range(K/2)]
@@ -87,8 +99,8 @@ if '__main__' == __name__:
 	core = [[
 	net.addSwitch('sc%d%d'%(i,j),
 		cls = P4Switch,
-		sw_path = './router/simple_router',
-		json_path = './router/simple_router.json',
+		sw_path = exec_path,
+		json_path = json_path,
 		thrift_port = core_port[i][j],
 		pcap_dump = False)
 	for j in range(K/2)]
@@ -164,7 +176,7 @@ if '__main__' == __name__:
 						cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[npod][ni][nj],agg_ip[pod][fwd],fwd+K/2+1))
 			
 			p = subprocess.Popen(
-				['./tools/runtime_CLI.py', '--json', './router/simple_router.json', '--thrift-port', str(edge_port[pod][i])],
+				[cli_path, '--json', json_path, '--thrift-port', str(edge_port[pod][i])],
 				stdin=subprocess.PIPE,
 				stdout=subprocess.PIPE,
 				stderr=subprocess.PIPE)
@@ -189,7 +201,7 @@ if '__main__' == __name__:
 							cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[npod][ni][nj],core_ip[i][fwd],fwd+K/2+1))
 			
 			p = subprocess.Popen(
-				['./tools/runtime_CLI.py', '--json', './router/simple_router.json', '--thrift-port', str(agg_port[pod][i])],
+				[cli_path, '--json', json_path, '--thrift-port', str(agg_port[pod][i])],
 				stdin=subprocess.PIPE,
 				stdout=subprocess.PIPE,
 				stderr=subprocess.PIPE)
@@ -209,7 +221,7 @@ if '__main__' == __name__:
 						cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[npod][ni][nj],agg_ip[npod][ni],npod+1))
 			
 			p = subprocess.Popen(
-				['./tools/runtime_CLI.py', '--json', './router/simple_router.json', '--thrift-port', str(core_port[i][j])],
+				[cli_path, '--json', json_path, '--thrift-port', str(core_port[i][j])],
 				stdin=subprocess.PIPE,
 				stdout=subprocess.PIPE,
 				stderr=subprocess.PIPE)
