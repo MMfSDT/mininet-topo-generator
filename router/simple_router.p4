@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 header_type ethernet_t {
     fields {
         dstAddr : 48;
@@ -35,63 +36,59 @@ header_type ipv4_t {
         hdrChecksum : 16;
         srcAddr : 32;
         dstAddr: 32;
+        padding: 32;
     }
 }
 
-parser start {
-    return parse_ethernet;
-}
-
-#define ETHERTYPE_IPV4 0x0800
-
-header ethernet_t ethernet;
-header ipv4_t ipv4;
-
-parser parse_ethernet {
-    extract(ethernet);
-    extract(ipv4);
-    return ingress;
-}
-
-field_list ipv4_checksum_list {
-        ipv4.version;
-        ipv4.ihl;
-        ipv4.diffserv;
-        ipv4.totalLen;
-        ipv4.identification;
-        ipv4.flags;
-        ipv4.fragOffset;
-        ipv4.ttl;
-        ipv4.protocol;
-        ipv4.srcAddr;
-        ipv4.dstAddr;
-}
-
-
-field_list_calculation ipv4_checksum {
-    input {
-        ipv4_checksum_list;
+header_type tcp_t {
+    fields {
+        srcPort: 8;
+        dstPort: 8;
     }
-    algorithm : csum16;
-    output_width : 16;
-}
-
-calculated_field ipv4.hdrChecksum  {
-    verify ipv4_checksum;
-    update ipv4_checksum;
-}
-
-action _drop() {
-    drop();
 }
 
 header_type routing_metadata_t {
     fields {
         nhop_ipv4 : 32;
+        hashVal: 8;
     }
 }
 
+header ethernet_t ethernet;
+header ipv4_t ipv4;
+header tcp_t tcp;
 metadata routing_metadata_t routing_metadata;
+
+field_list flow_id {
+    ipv4.srcAddr;
+    tcp.srcPort;
+    ipv4.dstAddr;
+    tcp.dstPort;
+    ipv4.protocol;
+}
+
+field_list_calculation flow_hash {
+    input {
+        flow_id;
+    }
+    algorithm: crc16;
+    output_width: 8;
+}
+
+calculated_field routing_metadata.hashVal {
+    update flow_hash;
+}
+
+parser start {
+    extract(ethernet);
+    extract(ipv4);
+    extract(tcp);
+    return ingress;
+}
+
+action _drop() {
+    drop();
+}
 
 action set_nhop(nhop_ipv4, port) {
     modify_field(routing_metadata.nhop_ipv4, nhop_ipv4);

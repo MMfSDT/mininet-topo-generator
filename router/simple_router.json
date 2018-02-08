@@ -118,6 +118,26 @@
                 [
                     "dstAddr",
                     32
+                ],
+                [
+                    "padding",
+                    32
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
+            "name": "tcp_t",
+            "id": 3,
+            "fields": [
+                [
+                    "srcPort",
+                    8
+                ],
+                [
+                    "dstPort",
+                    8
                 ]
             ],
             "length_exp": null,
@@ -125,11 +145,15 @@
         },
         {
             "name": "routing_metadata_t",
-            "id": 3,
+            "id": 4,
             "fields": [
                 [
                     "nhop_ipv4",
                     32
+                ],
+                [
+                    "hashVal",
+                    8
                 ]
             ],
             "length_exp": null,
@@ -156,8 +180,14 @@
             "metadata": false
         },
         {
-            "name": "routing_metadata",
+            "name": "tcp",
             "id": 3,
+            "header_type": "tcp_t",
+            "metadata": false
+        },
+        {
+            "name": "routing_metadata",
+            "id": 4,
             "header_type": "routing_metadata_t",
             "metadata": true
         }
@@ -172,20 +202,6 @@
                 {
                     "name": "start",
                     "id": 0,
-                    "parser_ops": [],
-                    "transition_key": [],
-                    "transitions": [
-                        {
-                            "type": "default",
-                            "value": null,
-                            "mask": null,
-                            "next_state": "parse_ethernet"
-                        }
-                    ]
-                },
-                {
-                    "name": "parse_ethernet",
-                    "id": 1,
                     "parser_ops": [
                         {
                             "op": "extract",
@@ -202,6 +218,15 @@
                                 {
                                     "type": "regular",
                                     "value": "ipv4"
+                                }
+                            ]
+                        },
+                        {
+                            "op": "extract",
+                            "parameters": [
+                                {
+                                    "type": "regular",
+                                    "value": "tcp"
                                 }
                             ]
                         }
@@ -226,7 +251,8 @@
             "id": 0,
             "order": [
                 "ethernet",
-                "ipv4"
+                "ipv4",
+                "tcp"
             ]
         }
     ],
@@ -415,72 +441,9 @@
     ],
     "calculations": [
         {
-            "name": "ipv4_checksum",
+            "name": "flow_hash",
             "id": 0,
             "input": [
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "version"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "ihl"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "diffserv"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "totalLen"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "identification"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "flags"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "fragOffset"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "ttl"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "protocol"
-                    ]
-                },
                 {
                     "type": "field",
                     "value": [
@@ -491,24 +454,45 @@
                 {
                     "type": "field",
                     "value": [
+                        "tcp",
+                        "srcPort"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
                         "ipv4",
                         "dstAddr"
                     ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "dstPort"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "protocol"
+                    ]
                 }
             ],
-            "algo": "csum16"
+            "algo": "crc16"
         }
     ],
     "checksums": [
         {
-            "name": "ipv4.hdrChecksum|ipv4_checksum",
+            "name": "routing_metadata.hashVal|flow_hash",
             "id": 0,
             "target": [
-                "ipv4",
-                "hdrChecksum"
+                "routing_metadata",
+                "hashVal"
             ],
             "type": "generic",
-            "calculation": "ipv4_checksum",
+            "calculation": "flow_hash",
             "if_cond": null
         }
     ],
