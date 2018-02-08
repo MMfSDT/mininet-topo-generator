@@ -1,0 +1,13 @@
+# Ignore own environment variable setups.
+env.sh
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# This was a debugging script.
+x.sh

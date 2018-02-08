@@ -1,26 +1,43 @@
 #!/usr/bin/env python
+
+############################################################################################
+#   topogen.py
+#       Generates a scalable fat-tree topology.
+#       Follows this syntax:
+#           ./topogen.py --test_name [test name {none}] --K [K {4}]
+#       Make sure to set env.sh first before proceeding.
+############################################################################################
+
 from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.link import Link, TCLink, Intf
 from subprocess import Popen, PIPE
 from mininet.log import setLogLevel
+import os
+import argparse
 import sys
 import subprocess
 from random import randint
 
 from router.p4_mininet import P4Switch, P4Host
 
+# Moved paths from being hardcoded in the Python script,
+# 	to a global env.sh file. Default values are still set for safety measures,
+# 	although they might not work for each system.
+# 	(Solution from here: https://stackoverflow.com/questions/4906977/access-environment-variables-from-python)
 
+exec_path = os.getenv('TOPO_EXEC_PATH', '../behavioral-model/targets/simple_router/simple_router')
+json_path = os.getenv('TOPO_JSON_PATH', './router/simple_router.json')
+cli_path = os.getenv('TOPO_CLI_PATH', '../behavioral-model/tools/runtime_CLI.py')
 
-###### INSERT PATHS HERE ######
+# Handle arguments in a more elegant manner using argparse.
 
-exec_path = '../behavioral-model/targets/simple_router/simple_router'
-json_path = './router/simple_router.json'
-cli_path = '../behavioral-model/tools/runtime_CLI.py'
+parser = argparse.ArgumentParser(description='Generates a scalable Fat-tree topology.')
+parser.add_argument('--test_name', dest='test_name', default='none', metavar='test', help='specify a test to run. defaults to "none".')
+parser.add_argument('--K', dest='K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
+args = parser.parse_args()
 
-###############################
-
-
+# Code proper.
 
 if '__main__' == __name__:
 	setLogLevel('info')
@@ -32,8 +49,8 @@ if '__main__' == __name__:
     #stdout, stderr = p.communicate()
     #print "stdout=", stdout, "stderr=", stderr
 
-	K = int(sys.argv[1])
-	print "Generating topology for K =",K
+	K = args.K 									# Moved from argv[1] to args.K
+	print "Generating topology for K =", K
 
 	print "Naming convention"
 	print "Host:               h<pod><i><j>"
