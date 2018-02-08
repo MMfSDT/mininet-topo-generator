@@ -23,3 +23,6 @@ TOPO_EXEC_PATH=$TOPO_EXEC_PATH \
 # Then finally run the generator with the following default arguments:
 #   test name: none (cli only); K: 4;
     ./topogen.py --test_name ${1:-none} --K ${2:-4}
+
+# Clean the mess again after exiting, silently.
+sudo mn -c &> /dev/null
