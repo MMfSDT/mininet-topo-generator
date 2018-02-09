@@ -1,26 +1,44 @@
 #!/usr/bin/env python
+
+############################################################################################
+#   topogen.py
+#       Generates a scalable fat-tree topology.
+#       Follows this syntax:
+#           ./topogen.py [--test path_to_test {None}] [--K K {4}] [--pcap]
+#       Make sure to set env.sh first before proceeding.
+############################################################################################
+
 from mininet.net import Mininet
 from mininet.cli import CLI
 from mininet.link import Link, TCLink, Intf
 from subprocess import Popen, PIPE
 from mininet.log import setLogLevel
+import os
+import argparse
 import sys
 import subprocess
 from random import randint
 
 from router.p4_mininet import P4Switch, P4Host
 
+# Moved paths from being hardcoded in the Python script,
+# 	to a global env.sh file. Default values are still set for safety measures,
+# 	although they might not work for each system.
+# 	(Solution from here: https://stackoverflow.com/questions/4906977/access-environment-variables-from-python)
 
+exec_path = os.getenv('TOPO_EXEC_PATH', '../behavioral-model/targets/simple_router/simple_router')
+json_path = os.getenv('TOPO_JSON_PATH', './router/simple_router.json')
+cli_path = os.getenv('TOPO_CLI_PATH', '../behavioral-model/tools/runtime_CLI.py')
 
-###### INSERT PATHS HERE ######
+# Handle arguments in a more elegant manner using argparse.
 
-exec_path = '../behavioral-model/targets/simple_router/simple_router'
-json_path = './router/simple_router.json'
-cli_path = '../behavioral-model/tools/runtime_CLI.py'
+parser = argparse.ArgumentParser(description='Generates a scalable Fat-tree topology.')
+parser.add_argument('--test', default=None, type=str, metavar='path_to_test', help='specify a test to run. defaults to None.')
+parser.add_argument('--K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
+parser.add_argument('--pcap', action='store_true', help='dumps pcap files')
+args = parser.parse_args()
 
-###############################
-
-
+# Code proper.
 
 if '__main__' == __name__:
 	setLogLevel('info')
@@ -32,8 +50,8 @@ if '__main__' == __name__:
     #stdout, stderr = p.communicate()
     #print "stdout=", stdout, "stderr=", stderr
 
-	K = int(sys.argv[1])
-	print "Generating topology for K =",K
+	K = args.K 									# Moved from argv[1] to args.K
+	print "Generating topology for K =", K
 
 	print "Naming convention"
 	print "Host:               h<pod><i><j>"
@@ -82,7 +100,7 @@ if '__main__' == __name__:
  		sw_path = exec_path,
 		json_path = json_path,
 		thrift_port = edge_port[pod][i],
-		pcap_dump = False)
+		pcap_dump = args.pcap)
 	for i in range(K/2)]
 	for pod in range(K)]
 
@@ -92,7 +110,7 @@ if '__main__' == __name__:
 		sw_path = exec_path,
 		json_path = json_path,
 		thrift_port = agg_port[pod][i],
-		pcap_dump = False)
+		pcap_dump = args.pcap)
 	for i in range(K/2)]
 	for pod in range(K)]
 
@@ -102,7 +120,7 @@ if '__main__' == __name__:
 		sw_path = exec_path,
 		json_path = json_path,
 		thrift_port = core_port[i][j],
-		pcap_dump = False)
+		pcap_dump = args.pcap)
 	for j in range(K/2)]
 	for i in range(K/2)]
 	
@@ -156,6 +174,10 @@ if '__main__' == __name__:
 		for i in range(K/2):
 			for j in range(K/2):
 				host[pod][i][j].setDefaultRoute('dev eth0 via %s'%(edge_ip[pod][i]))
+				# IPv6 messes with the logs. Disable it.
+				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
+				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
+				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=1")
 	
 	#configure edge forwarding
 	for pod in range(K):
@@ -229,6 +251,18 @@ if '__main__' == __name__:
 			msg,err = p.communicate('\n'.join(cmd))
 			print msg
 
-	print "\n\nDone!"
+	print "\n\n*** Topology setup done."
+	
+	if (args.test is not None):
+		if (os.path.isfile("kickstart_python.test")):
+			print "*** Running test: {}\n\n".format(args.test)
+			CLI(net, script="kickstart_python.test")
+			print "*** Test done: {}\n\n".format(args.test)
+		else:
+			print "*** Skipping test file, it does not exist: {}\n\n".format(args.test)
+	else:
+		print "*** No test to execute."
+
+	print "\n*** To quit, type 'exit' or press 'Ctrl+D'."
 	CLI(net)
 	net.stop()
