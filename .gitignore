@@ -1,5 +1,9 @@
 # Ignore own environment variable setups.
 env.sh
+kickstart_python.test
+
+# Ignore .pcap outputs.
+s*.pcap
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -4,7 +4,7 @@
 #   topogen.py
 #       Generates a scalable fat-tree topology.
 #       Follows this syntax:
-#           ./topogen.py --test_name [test name {none}] --K [K {4}]
+#           ./topogen.py [--test path_to_test {None}] [--K K {4}] [--pcap]
 #       Make sure to set env.sh first before proceeding.
 ############################################################################################
 
@@ -33,8 +33,9 @@ cli_path = os.getenv('TOPO_CLI_PATH', '../behavioral-model/tools/runtime_CLI.py'
 # Handle arguments in a more elegant manner using argparse.
 
 parser = argparse.ArgumentParser(description='Generates a scalable Fat-tree topology.')
-parser.add_argument('--test_name', dest='test_name', default='none', metavar='test', help='specify a test to run. defaults to "none".')
-parser.add_argument('--K', dest='K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
+parser.add_argument('--test', default=None, type=str, metavar='path_to_test', help='specify a test to run. defaults to None.')
+parser.add_argument('--K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
+parser.add_argument('--pcap', action='store_true', help='dumps pcap files')
 args = parser.parse_args()
 
 # Code proper.
@@ -99,7 +100,7 @@ if '__main__' == __name__:
  		sw_path = exec_path,
 		json_path = json_path,
 		thrift_port = edge_port[pod][i],
-		pcap_dump = False)
+		pcap_dump = args.pcap)
 	for i in range(K/2)]
 	for pod in range(K)]
 
@@ -109,7 +110,7 @@ if '__main__' == __name__:
 		sw_path = exec_path,
 		json_path = json_path,
 		thrift_port = agg_port[pod][i],
-		pcap_dump = False)
+		pcap_dump = args.pcap)
 	for i in range(K/2)]
 	for pod in range(K)]
 
@@ -119,7 +120,7 @@ if '__main__' == __name__:
 		sw_path = exec_path,
 		json_path = json_path,
 		thrift_port = core_port[i][j],
-		pcap_dump = False)
+		pcap_dump = args.pcap)
 	for j in range(K/2)]
 	for i in range(K/2)]
 	
@@ -173,6 +174,10 @@ if '__main__' == __name__:
 		for i in range(K/2):
 			for j in range(K/2):
 				host[pod][i][j].setDefaultRoute('dev eth0 via %s'%(edge_ip[pod][i]))
+				# IPv6 messes with the logs. Disable it.
+				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=1")
+				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
+				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=1")
 	
 	#configure edge forwarding
 	for pod in range(K):
@@ -246,6 +251,18 @@ if '__main__' == __name__:
 			msg,err = p.communicate('\n'.join(cmd))
 			print msg
 
-	print "\n\nDone!"
+	print "\n\n*** Topology setup done."
+	
+	if (args.test is not None):
+		if (os.path.isfile("kickstart_python.test")):
+			print "*** Running test: {}\n\n".format(args.test)
+			CLI(net, script="kickstart_python.test")
+			print "*** Test done: {}\n\n".format(args.test)
+		else:
+			print "*** Skipping test file, it does not exist: {}\n\n".format(args.test)
+	else:
+		print "*** No test to execute."
+
+	print "\n*** To quit, type 'exit' or press 'Ctrl+D'."
 	CLI(net)
 	net.stop()
