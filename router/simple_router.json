@@ -233,8 +233,19 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "set_nhop",
+            "name": "_drop",
             "id": 0,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
+            "name": "set_nhop",
+            "id": 1,
             "runtime_data": [
                 {
                     "name": "nhop_ipv4",
@@ -309,17 +320,6 @@
                             }
                         }
                     ]
-                }
-            ]
-        },
-        {
-            "name": "_drop",
-            "id": 1,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
                 }
             ]
         }
@@ -413,105 +413,8 @@
             "conditionals": []
         }
     ],
-    "calculations": [
-        {
-            "name": "ipv4_checksum",
-            "id": 0,
-            "input": [
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "version"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "ihl"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "diffserv"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "totalLen"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "identification"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "flags"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "fragOffset"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "ttl"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "protocol"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "srcAddr"
-                    ]
-                },
-                {
-                    "type": "field",
-                    "value": [
-                        "ipv4",
-                        "dstAddr"
-                    ]
-                }
-            ],
-            "algo": "csum16"
-        }
-    ],
-    "checksums": [
-        {
-            "name": "ipv4.hdrChecksum|ipv4_checksum",
-            "id": 0,
-            "target": [
-                "ipv4",
-                "hdrChecksum"
-            ],
-            "type": "generic",
-            "calculation": "ipv4_checksum",
-            "if_cond": null
-        }
-    ],
+    "calculations": [],
+    "checksums": [],
     "learn_lists": [],
     "field_lists": [],
     "counter_arrays": [],
