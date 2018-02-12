@@ -45,9 +45,9 @@ fi
 
 # Set the environmental variables before running the topology generator.
 TOPO_EXEC_PATH=$TOPO_EXEC_PATH
-TOPO_JSON_PATH=$TOPO_JSON_SIMPLE_PATH
+TOPO_JSON_PATH=$TOPO_JSON_ECMP_PATH
 TOPO_CLI_PATH=$TOPO_CLI_PATH
-TOPO_TABLEGEN_PATH=$TOPO_TABLEGEN_SIMPLE_PATH
+TOPO_TABLEGEN_PATH=$TOPO_TABLEGEN_ECMP_PATH
 
 # Then finally run the generator, passing fully all arguments.
     ./topogen.py "$@" --exec_path $TOPO_EXEC_PATH --json_path $TOPO_JSON_PATH --cli_path $TOPO_CLI_PATH --tablegen_path $TOPO_TABLEGEN_PATH

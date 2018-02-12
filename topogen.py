@@ -18,17 +18,9 @@ import argparse
 import sys
 import subprocess
 from random import randint
+import imp
 
 from router.p4_mininet import P4Switch, P4Host
-
-# Moved paths from being hardcoded in the Python script,
-# 	to a global env.sh file. Default values are still set for safety measures,
-# 	although they might not work for each system.
-# 	(Solution from here: https://stackoverflow.com/questions/4906977/access-environment-variables-from-python)
-
-exec_path = os.getenv('TOPO_EXEC_PATH', '../behavioral-model/targets/simple_router/simple_router')
-json_path = os.getenv('TOPO_JSON_PATH', './router/simple_router.json')
-cli_path = os.getenv('TOPO_CLI_PATH', '../behavioral-model/tools/runtime_CLI.py')
 
 # Handle arguments in a more elegant manner using argparse.
 
@@ -36,7 +28,18 @@ parser = argparse.ArgumentParser(description='Generates a scalable Fat-tree topo
 parser.add_argument('--test', default=None, type=str, metavar='path_to_test', help='specify a test to run. defaults to None.')
 parser.add_argument('--K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
 parser.add_argument('--pcap', action='store_true', help='dumps pcap files')
+parser.add_argument('--exec_path', default='../behavioral-model/targets/simple_router/simple_router', type=str, help='provide the path to the simple_router executable')
+parser.add_argument('--json_path', default='./router/simple_router.json', type=str, help='provide the path to the behavioral json')
+parser.add_argument('--cli_path', default='../behavioral-model/tools/runtime_CLI.py', type=str, help='provide the path to the runtime CLI')
+parser.add_argument('--tablegen_path', default='./router/tablegen_simple.py', type=str, help='provide the path to the table generator script')
 args = parser.parse_args()
+
+exec_path = args.exec_path;
+json_path = args.json_path;
+cli_path = args.cli_path;
+tablegen_path = args.tablegen_path;
+
+print exec_path,json_path,cli_path,tablegen_path
 
 # Code proper.
 
@@ -58,8 +61,6 @@ if '__main__' == __name__:
 	print "Edge switch:        se<pod><i>"
 	print "Aggregate switch:   sa<pod><i>"
 	print "Core switch:        sc<i><j>"
-	
-	
 	
 	host_ip = [[[
 	'10.%d.%d.%d'%(pod,i,j+2)
@@ -167,7 +168,6 @@ if '__main__' == __name__:
 	net.build()
 	net.staticArp()
 	net.start()
-				
 	
 	#configure host forwarding
 	for pod in range(K):
@@ -179,77 +179,16 @@ if '__main__' == __name__:
 				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=1")
 				host[pod][i][j].cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=1")
 	
-	#configure edge forwarding
-	for pod in range(K):
-		for i in range(K/2):
-			cmd = ['table_set_default ipv4_exact _drop']
-			
-			#downstream
-			for j in range(K/2):
-				cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[pod][i][j],host_ip[pod][i][j],j+1))
-				
-			#upstream
-			for npod in range(K):
-				for ni in range(K/2):
-					if npod==pod and ni==i:
-						continue
-					for nj in range(K/2):
-						fwd = randint(0,K/2-1)
-						cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[npod][ni][nj],agg_ip[pod][fwd],fwd+K/2+1))
-			
-			p = subprocess.Popen(
-				[cli_path, '--json', json_path, '--thrift-port', str(edge_port[pod][i])],
-				stdin=subprocess.PIPE,
-				stdout=subprocess.PIPE,
-				stderr=subprocess.PIPE)
-			
-			msg,err = p.communicate('\n'.join(cmd))
-			print msg
+	#get tablegen to initialize routing tables
+	tablegen = imp.load_source('tablegen',tablegen_path).TableGenerator(
+        K=K,
+        port_offset=port_offset,
+        verbose=True,
+        cli_path=cli_path,
+        json_path=json_path
+    )
 	
-	#configure agg forwarding
-	for pod in range(K):
-		for i in range(K/2):
-			cmd = ['table_set_default ipv4_exact _drop']
-			
-			for npod in range(K):
-				for ni in range(K/2):
-					for nj in range(K/2):
-						if pod==npod:
-							#downstream
-							cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[npod][ni][nj],edge_ip[pod][ni],ni+1))
-						else:
-							#upstream
-							fwd = randint(0,K/2-1)
-							cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[npod][ni][nj],core_ip[i][fwd],fwd+K/2+1))
-			
-			p = subprocess.Popen(
-				[cli_path, '--json', json_path, '--thrift-port', str(agg_port[pod][i])],
-				stdin=subprocess.PIPE,
-				stdout=subprocess.PIPE,
-				stderr=subprocess.PIPE)
-			
-			msg,err = p.communicate('\n'.join(cmd))
-			print msg
-	
-	#configure core forwarding
-	for i in range(K/2):
-		for j in range(K/2):
-			cmd = ['table_set_default ipv4_exact _drop']
-			
-			for npod in range(K):
-				for ni in range(K/2):
-					for nj in range(K/2):
-						#everything is downstream
-						cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(host_ip[npod][ni][nj],agg_ip[npod][ni],npod+1))
-			
-			p = subprocess.Popen(
-				[cli_path, '--json', json_path, '--thrift-port', str(core_port[i][j])],
-				stdin=subprocess.PIPE,
-				stdout=subprocess.PIPE,
-				stderr=subprocess.PIPE)
-			
-			msg,err = p.communicate('\n'.join(cmd))
-			print msg
+	tablegen.init_all()
 
 	print "\n\n*** Topology setup done."
 	
