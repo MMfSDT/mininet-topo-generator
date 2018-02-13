@@ -39,8 +39,6 @@ json_path = args.json_path;
 cli_path = args.cli_path;
 tablegen_path = args.tablegen_path;
 
-print exec_path,json_path,cli_path,tablegen_path
-
 # Code proper.
 
 if '__main__' == __name__:
