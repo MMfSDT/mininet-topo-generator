@@ -3,7 +3,7 @@ Generates a scalable fat-tree topology with customizable switches.
 
 ## Prerequisites and Dependencies
 ### P4's Behavioral Model
-Before using the topology generator, you must have cloned and built the (behavioral model repository)[https://github.com/p4lang/behavioral-model]:
+Before using the topology generator, you must have cloned and built the [behavioral model repository](https://github.com/p4lang/behavioral-model):
 
 On your own comfortable directory, run the following code.
 ```bash
