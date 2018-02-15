@@ -153,7 +153,11 @@
                 ],
                 [
                     "hashVal",
-                    8
+                    3
+                ],
+                [
+                    "_padding",
+                    5
                 ]
             ],
             "length_exp": null,
@@ -259,8 +263,19 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "set_nhop",
+            "name": "_drop",
             "id": 0,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
+            "name": "set_nhop",
+            "id": 1,
             "runtime_data": [
                 {
                     "name": "nhop_ipv4",
@@ -339,15 +354,10 @@
             ]
         },
         {
-            "name": "_drop",
-            "id": 1,
+            "name": "do_nothing",
+            "id": 2,
             "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
-                }
-            ]
+            "primitives": []
         }
     ],
     "pipelines": [
@@ -357,11 +367,11 @@
             "init_table": "_condition_0",
             "tables": [
                 {
-                    "name": "ipv4_exact",
+                    "name": "table_downstream",
                     "id": 0,
                     "match_type": "exact",
                     "type": "simple",
-                    "max_size": 1024,
+                    "max_size": 16384,
                     "with_counters": false,
                     "direct_meters": null,
                     "support_timeout": false,
@@ -382,6 +392,63 @@
                     "next_tables": {
                         "set_nhop": null,
                         "_drop": null
+                    },
+                    "base_default_next": null
+                },
+                {
+                    "name": "table_upstream",
+                    "id": 1,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "exact",
+                            "target": [
+                                "routing_metadata",
+                                "hashVal"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "set_nhop",
+                        "_drop"
+                    ],
+                    "next_tables": {
+                        "set_nhop": null,
+                        "_drop": null
+                    },
+                    "base_default_next": null
+                },
+                {
+                    "name": "ipv4_lpm",
+                    "id": 2,
+                    "match_type": "lpm",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "lpm",
+                            "target": [
+                                "ipv4",
+                                "dstAddr"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "do_nothing"
+                    ],
+                    "next_tables": {
+                        "__HIT__": "table_downstream",
+                        "__MISS__": "table_upstream"
                     },
                     "base_default_next": null
                 }
@@ -425,7 +492,7 @@
                             }
                         }
                     },
-                    "true_next": "ipv4_exact",
+                    "true_next": "ipv4_lpm",
                     "false_next": null
                 }
             ]

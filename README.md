@@ -32,6 +32,7 @@ where
 ### Supported Run Scripts
 The following run scripts are currently supported:
 * `run_static.sh` - generates a topology with static routes, randomly chosen at generation.
+* `run_ecmp.sh` - generates a topology with routers following the ECMP protocol. Uses the standard 5-tuple for hashing.
 
 ## Exiting the Script
 To exit from the CLI, enter `exit` or press `Ctrl+D` (`Ctrl+C` doesn't work).

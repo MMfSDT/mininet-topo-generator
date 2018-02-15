@@ -50,7 +50,7 @@ header_type tcp_t {
 header_type routing_metadata_t {
     fields {
         nhop_ipv4 : 32;
-        hashVal: 8;
+        hashVal: 3;
     }
 }
 
@@ -99,7 +99,7 @@ field_list_calculation flow_hash {
         flow_id;
     }
     algorithm: crc16;
-    output_width: 8;
+    output_width: 3;
 }
 
 calculated_field routing_metadata.hashVal {
@@ -123,7 +123,10 @@ action set_nhop(nhop_ipv4, port) {
     modify_field(ipv4.ttl, ipv4.ttl - 1);
 }
 
-table ipv4_exact {
+action do_nothing() {
+}
+
+table table_downstream {
     reads {
         ipv4.dstAddr : exact;
     }
@@ -131,12 +134,38 @@ table ipv4_exact {
         set_nhop;
         _drop;
     }
-    size: 1024;
+}
+
+table table_upstream
+{
+	reads {
+		routing_metadata.hashVal: exact;
+	}
+	actions {
+		set_nhop;
+		_drop;
+	}
+}
+
+table ipv4_lpm {
+	reads {
+		ipv4.dstAddr : lpm;
+	}
+	actions {
+		do_nothing;
+	}
 }
 
 control ingress {
     if(valid(ipv4) and ipv4.ttl>0) {
-        apply(ipv4_exact);
+        apply(ipv4_lpm){
+        	hit {
+        		apply(table_downstream);
+        	}
+        	miss {
+        		apply(table_upstream);
+        	}
+        }
     }
 }
 
