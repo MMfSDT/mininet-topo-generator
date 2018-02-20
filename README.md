@@ -1,4 +1,4 @@
-# mininet-topo-generator
+# MMfSDT/mininet-topo-generator
 Generates a scalable fat-tree topology with customizable switches.
 
 ## Prerequisites and Dependencies
@@ -8,6 +8,7 @@ Before using the topology generator, you must have cloned and built the [behavio
 On your own comfortable directory, run the following code.
 ```bash
 sudo apt-get update
+sudo apt-get install tshark
 git clone git://github.com/p4lang/behavioral-model
 cd behavioral-model
 sudo ./install-deps.sh
@@ -15,30 +16,67 @@ sudo ./install-deps.sh
 ./configure --enable-debugger
 make
 ```
+
+### MMfSDT/network-tests
+It is highly recommended to place the `MMfSDT/network-tests` [repository](https://github.com/MMfSDT/network-tests) and this repository on the same directory. Tests would probably not work if this weren't the case.
+
+Saving both repositories can be done with this code.
+```bash
+git clone git@github.com:MMfSDT/network-tests.git
+git clone git@github.com:MMfSDT/mininet-topo-generator.git
+```
+
 ### Setting Up Required Paths
 Once you've built the repository, open `env.sh.example`, rename it to `env.sh`, and correct the executable and runtime CLI script paths if necessary.
 
 ## Running the Script
 The same topology can be generated with differing switch behavior. To run the topology generator, use the following command:
-```bash
-sudo ./run_script.sh [--test path_to_test {None}] [--K K {4}] [--pcap]
-```
-where 
-* `run_script` is one of the currently supported run scripts, and determines the routing behavior of the topology,
-* `path_to_test` pertains to the test to be ran after generation (defaults to `None`, which goes directly to the Mininet cli),
-* `K` is the size of the Fat-Tree network (`K` is an element of \{2, 4, 8, 16, 32, 64, 128\}; defaults to `4`),
-* and `--pcap` enables `.pcap` logging (necessary for some tests).
 
-### Supported Run Scripts
-The following run scripts are currently supported:
-* `run_static.sh` - generates a topology with static routes, randomly chosen at generation.
-* `run_ecmp.sh` - generates a topology with routers following the ECMP protocol. Uses the standard 5-tuple for hashing.
+```bash
+############################################################################################
+#   run.sh
+#       Bootstrap a static topology.
+#       Virtually follows topogen.py's syntax:
+#           sudo ./run.sh 
+#               [--test path_to_test {none}] 
+#               [--post path_to_post_process_script {none}]
+#               [--router router_behavior {static}]
+#               [--pcap]
+#               [--K K {4}]
+#               [--proto tcp|mptcp {mptcp}]
+#               [--pmanager fullmesh|ndiffports {fullmesh}]
+#               [--diffports num_diff_ports {1}]
+#               [--payloadsize query|long|short {short}]
+#               [--runcount num_counts {10}]
+#       Make sure to set env.sh first before proceeding.
+############################################################################################
+```
+
+where 
+
+* `path_to_test` pertains to the test to be ran after generation (defaults to `None`, which goes directly to the Mininet cli),
+* `path_to_post_process_script` pertains to the post-processing script to be ran after testing (defaults to `None`, note that `--pcap` must be set as well),
+* `router_behavior` changes how switch behave (`static|ecmp|ps`, defaults to `static`),
+* `--pcap` enables `.pcap` logging (necessary for some tests),
+* `K` is the size of the Fat-Tree network (`K` is an element of \{2, 4, 8, 16, 32, 64, 128\}; defaults to `4`),
+* `--proto` defines the protocol running on hosts (`tcp|mptcp`, defaults to `mptcp`),
+* `--pmanager` defines the MPTCP Path Manager used (`fullmesh|ndiffports`, defaults to `fullmesh`, note that `--proto` must be set to `mptcp`),
+* `--diffports` defines the how many ports will `ndiffports` use (defaults to `1`, note that `--proto` must be set to `mptcp` and `--pmanager` must be set to `ndiffports`),
+* `--payloadsize` sets the flow size (`query|long|short`, defaults to `short`),
+* `num_counts` defines how many tests per pair will be made (defaults to `10`).
+
+For example,
+```
+sudo ./run.sh --test ../network-tests/test.py --post ../network-tests/postprocess.py --router static --pcap --K 4 --proto tcp --payloadsize long
+```
+
+will run FCT and Throughput tests on a FatTree topology with k = 4, with statically-configured routers, and TCP-enabled hosts, with a long flow size. `.pcap` logging is enabled to make the post-processing work. Tests are done 10 times between each host pair, and results are saved on `../network-tests/logs/`
 
 ## Exiting the Script
 To exit from the CLI, enter `exit` or press `Ctrl+D` (`Ctrl+C` doesn't work).
 
 ## Conventions
-This section clarifies the several conventions used in assigning properties, such as names and ip addresses, of nodes in the mininet topology.
+This section clarifies the several conventions used in assigning properties, such as names and IP addresses, of nodes in the mininet topology.
 ### Standard Topology Structure
 For a given K, the topology is composed of K pods. Each pod is composed of K/2 aggregate routers and K/2 edge routers, each aggregate router connected to all edge routers, and vice versa. Each edge router is connected to K/2 hosts, for a total of (K/2)^2 hosts per pod. There are a total of (K/2)^2 core routers, each connected to one aggregate router per pod.
 ### Numbering and Naming
@@ -83,4 +121,4 @@ The Behavioral Model Repository has several tools that can be used for debugging
 sudo ./nanomsg_client.py --thrift-port <port>
 ```
 
-where <port> is the thrift port of the router you wish to view.
+where `<port>` is the thrift port of the router you wish to view.

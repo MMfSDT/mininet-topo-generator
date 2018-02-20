@@ -4,7 +4,21 @@
 #   topogen.py
 #       Generates a scalable fat-tree topology.
 #       Follows this syntax:
-#           ./topogen.py [--test path_to_test {None}] [--K K {4}] [--pcap]
+#           ./topogen.py
+#               [--test path_to_test {none}] 
+#               [--post path_to_post_process_script {none}]
+#               [--router router_behavior {static}]
+#               [--pcap]
+#               [--K K {4}]
+#               [--proto tcp|mptcp {mptcp}]
+#               [--pmanager fullmesh|ndiffports {fullmesh}]
+#               [--diffports num_diff_ports {1}]
+#               [--payloadsize query|long|short {short}]
+#               [--runcount num_counts {10}]
+# 				[--exec_path exec_path {../behavioral-model/targets/simple_router/simple_router}] 
+# 				[--json_path json_path {./router/simple_router.json}] 
+# 				[--cli_path cli_path {../behavioral-model/tools/runtime_CLI.py}] 
+# 				[--tablegen_path tablegen_path {./router/tablegen_simple.py}] 
 #       Make sure to set env.sh first before proceeding.
 ############################################################################################
 
@@ -26,14 +40,19 @@ from router.p4_mininet import P4Switch, P4Host
 
 parser = argparse.ArgumentParser(description='Generates a scalable Fat-tree topology.')
 parser.add_argument('--test', default=None, type=str, metavar='path_to_test', help='specify a test to run. defaults to None.')
-parser.add_argument('--K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
+parser.add_argument('--post', default=None, type=str, metavar='path_to_post_process_script', help='specify a post-processing script to run. defaults to None.')
+parser.add_argument('--router', default='static', type=str, metavar='router_behavior', help='configure switch behavior between static, ecmp, and ps. defaults to static.')
 parser.add_argument('--pcap', action='store_true', help='dumps pcap files')
+parser.add_argument('--K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
+parser.add_argument('--proto', default='mptcp', type=str, metavar='tcp|mptcp', help='configure host protocol between tcp and mptcp. defaults to mptcp.')
+parser.add_argument('--pmanager', default='fullmesh', type=str, metavar='fullmesh|ndiffports', help='specify a MPTCP path manager. defaults to fullmesh.')
+parser.add_argument('--diffports', default=1, type=int, metavar='num_diff_ports', help='if --pmanager is set to ndiffports, set diffports here. defaults to 1.')
+parser.add_argument('--payloadsize', default='short', type=str, metavar='query|long|short', help='specify flow size. defaults to short.')
+parser.add_argument('--runcount', default=10, type=int, metavar='num_counts', help='specify how many tests should be done per pair. defaults to 10.')
 parser.add_argument('--exec_path', default='../behavioral-model/targets/simple_router/simple_router', type=str, help='provide the path to the simple_router executable')
 parser.add_argument('--json_path', default='./router/simple_router.json', type=str, help='provide the path to the behavioral json')
 parser.add_argument('--cli_path', default='../behavioral-model/tools/runtime_CLI.py', type=str, help='provide the path to the runtime CLI')
 parser.add_argument('--tablegen_path', default='./router/tablegen_simple.py', type=str, help='provide the path to the table generator script')
-parser.add_argument('--router')
-parser.add_argument('--post')
 
 args = parser.parse_args()
 
@@ -205,4 +224,8 @@ if '__main__' == __name__:
 		# The interactive cmd will now only run if there are no tests executed.
 		print "\n*** To quit, type 'exit' or press 'Ctrl+D'."
 		CLI(net)
-	net.stop()
+
+	try:
+		net.stop()
+	except:
+		print "\n*** Quitting Mininet."
