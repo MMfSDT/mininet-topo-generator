@@ -32,6 +32,9 @@ parser.add_argument('--exec_path', default='../behavioral-model/targets/simple_r
 parser.add_argument('--json_path', default='./router/simple_router.json', type=str, help='provide the path to the behavioral json')
 parser.add_argument('--cli_path', default='../behavioral-model/tools/runtime_CLI.py', type=str, help='provide the path to the runtime CLI')
 parser.add_argument('--tablegen_path', default='./router/tablegen_simple.py', type=str, help='provide the path to the table generator script')
+parser.add_argument('--router')
+parser.add_argument('--post')
+
 args = parser.parse_args()
 
 exec_path = args.exec_path;

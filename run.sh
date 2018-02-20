@@ -49,10 +49,10 @@ if [[ -z "$router" ]]; then
     router="static"
 fi
 
-if [ "$router"=="static" ]; then
+if [ "$router" == "static" ]; then
     TOPO_JSON_PATH=$TOPO_JSON_SIMPLE_PATH
     TOPO_TABLEGEN_PATH=$TOPO_TABLEGEN_SIMPLE_PATH
-elif [ "$router"=="ecmp" ]; then
+elif [[ "$router"=="ecmp" ]]; then
     TOPO_JSON_PATH=$TOPO_JSON_ECMP_PATH
     TOPO_TABLEGEN_PATH=$TOPO_TABLEGEN_ECMP_PATH
 else
@@ -62,9 +62,7 @@ fi
 
 # Set the environmental variables before running the topology generator.
 TOPO_EXEC_PATH=$TOPO_EXEC_PATH
-TOPO_JSON_PATH=$TOPO_JSON_SIMPLE_PATH
 TOPO_CLI_PATH=$TOPO_CLI_PATH
-TOPO_TABLEGEN_PATH=$TOPO_TABLEGEN_SIMPLE_PATH
 
 # Then finally run the generator, passing fully all arguments.
     ./topogen.py "$@" --exec_path $TOPO_EXEC_PATH --json_path $TOPO_JSON_PATH --cli_path $TOPO_CLI_PATH --tablegen_path $TOPO_TABLEGEN_PATH
@@ -73,3 +71,4 @@ sudo mn -c &> /dev/null
 
 if [[ ! -z "$post" ]]; then
     ./$post "$@"
+fi
