@@ -11,21 +11,6 @@ class TableGenerator:
         for j in range(K/2)]
         for i in range(K/2)]
         for pod in range(K)]
-	    
-        self.edge_ip = [[
-        '10.%d.%d.1'%(pod,i)
-        for i in range(K/2)]
-        for pod in range(K)]
-        
-        self.agg_ip = [[
-        '10.%d.%d.1'%(pod,i)
-        for i in range(K/2,K)]
-        for pod in range(K)]
-	
-        self.core_ip = [[
-        '10.%d.%d.%d'%(K,i+1,j+1)
-        for j in range(K/2)]
-        for i in range(K/2)]
 	        
         self.port_offset = port_offset
 	    
@@ -62,11 +47,11 @@ class TableGenerator:
     	        if self.verbose:
     	            print "Configuring se%d%d"%(pod,i)
         	        
-        	    cmd = ['table_set_default ipv4_exact _drop']
+        	    cmd = ['table_set_default ipv4_match _drop']
 			
                 #downstream
                 for j in range(self.K/2):
-                    cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(self.host_ip[pod][i][j],self.host_ip[pod][i][j],j+1))
+                    cmd.append('table_add ipv4_match set_nhop 10.%d.%d.%d/32 => %d'%(pod,i,j+2,j+1))
 				
                 #upstream
                 for npod in range(self.K):
@@ -75,7 +60,7 @@ class TableGenerator:
             			    continue
             		    for nj in range(self.K/2):
             			    fwd = randint(0,self.K/2-1)
-            			    cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(self.host_ip[npod][ni][nj],self.agg_ip[pod][fwd],fwd+self.K/2+1))
+            			    cmd.append('table_add ipv4_match set_nhop %s/32 => %d'%(self.host_ip[npod][ni][nj],fwd+self.K/2+1))
             
                 p = subprocess.Popen(
             	    [self.cli_path, '--json', self.json_path, '--thrift-port', str(self.edge_port[pod][i])],
@@ -96,18 +81,19 @@ class TableGenerator:
     	        if self.verbose:
                     print "Configuring sa%d%d"%(pod,i)
                     
-                cmd = ['table_set_default ipv4_exact _drop']
+                cmd = ['table_set_default ipv4_match _drop']
+
+                #downstream
+                for j in range(self.K/2):
+                    cmd.append('table_add ipv4_match set_nhop 10.%d.%d.0/24 => %d'%(pod,j,j+1))
                 
                 for npod in range(self.K):
+                    if npod==pod:
+                        continue
                     for ni in range(self.K/2):
                         for nj in range(self.K/2):
-                            if pod==npod:
-                                #downstream
-                                cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(self.host_ip[npod][ni][nj],self.edge_ip[pod][ni],ni+1))
-                            else:
-							    #upstream
-							    fwd = randint(0,self.K/2-1)
-							    cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(self.host_ip[npod][ni][nj],self.core_ip[i][fwd],fwd+self.K/2+1))
+						    fwd = randint(0,self.K/2-1)
+						    cmd.append('table_add ipv4_match set_nhop %s/32 => %d'%(self.host_ip[npod][ni][nj],fwd+self.K/2+1))
             
                 p = subprocess.Popen(
                     [self.cli_path, '--json', self.json_path, '--thrift-port', str(self.agg_port[pod][i])],
@@ -128,13 +114,10 @@ class TableGenerator:
                 if self.verbose:
                     print "\nConfiguring sc%d%d"%(i,j)
 		            
-                cmd = ['table_set_default ipv4_exact _drop']
-			
-                for npod in range(self.K):
-                    for ni in range(self.K/2):
-                        for nj in range(self.K/2):
-						    #everything is downstream
-                            cmd.append('table_add ipv4_exact set_nhop %s => %s %d'%(self.host_ip[npod][ni][nj],self.agg_ip[npod][ni],npod+1))
+                cmd = ['table_set_default ipv4_match _drop']
+
+                for pod in range(self.K):
+                    cmd.append('table_add ipv4_match set_nhop 10.%d.0.0/16 => %d'%(pod,pod+1))
 			
                 p = subprocess.Popen(
                     [self.cli_path, '--json', self.json_path, '--thrift-port', str(self.core_port[i][j])],

@@ -122,18 +122,6 @@
             ],
             "length_exp": null,
             "max_length": null
-        },
-        {
-            "name": "routing_metadata_t",
-            "id": 3,
-            "fields": [
-                [
-                    "nhop_ipv4",
-                    32
-                ]
-            ],
-            "length_exp": null,
-            "max_length": null
         }
     ],
     "headers": [
@@ -154,12 +142,6 @@
             "id": 2,
             "header_type": "ipv4_t",
             "metadata": false
-        },
-        {
-            "name": "routing_metadata",
-            "id": 3,
-            "header_type": "routing_metadata_t",
-            "metadata": true
         }
     ],
     "header_stacks": [],
@@ -237,31 +219,11 @@
             "id": 0,
             "runtime_data": [
                 {
-                    "name": "nhop_ipv4",
-                    "bitwidth": 32
-                },
-                {
                     "name": "port",
                     "bitwidth": 9
                 }
             ],
             "primitives": [
-                {
-                    "op": "modify_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "routing_metadata",
-                                "nhop_ipv4"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        }
-                    ]
-                },
                 {
                     "op": "modify_field",
                     "parameters": [
@@ -274,7 +236,7 @@
                         },
                         {
                             "type": "runtime_data",
-                            "value": 1
+                            "value": 0
                         }
                     ]
                 },
@@ -331,9 +293,9 @@
             "init_table": "_condition_0",
             "tables": [
                 {
-                    "name": "ipv4_exact",
+                    "name": "ipv4_match",
                     "id": 0,
-                    "match_type": "exact",
+                    "match_type": "lpm",
                     "type": "simple",
                     "max_size": 1024,
                     "with_counters": false,
@@ -341,7 +303,7 @@
                     "support_timeout": false,
                     "key": [
                         {
-                            "match_type": "exact",
+                            "match_type": "lpm",
                             "target": [
                                 "ipv4",
                                 "dstAddr"
@@ -399,7 +361,7 @@
                             }
                         }
                     },
-                    "true_next": "ipv4_exact",
+                    "true_next": "ipv4_match",
                     "false_next": null
                 }
             ]

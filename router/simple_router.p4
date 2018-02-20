@@ -84,23 +84,14 @@ action _drop() {
     drop();
 }
 
-header_type routing_metadata_t {
-    fields {
-        nhop_ipv4 : 32;
-    }
-}
-
-metadata routing_metadata_t routing_metadata;
-
-action set_nhop(nhop_ipv4, port) {
-    modify_field(routing_metadata.nhop_ipv4, nhop_ipv4);
+action set_nhop(port) {
     modify_field(standard_metadata.egress_spec, port);
     modify_field(ipv4.ttl, ipv4.ttl - 1);
 }
 
-table ipv4_exact {
+table ipv4_match {
     reads {
-        ipv4.dstAddr : exact;
+        ipv4.dstAddr : lpm;
     }
     actions {
         set_nhop;
@@ -111,7 +102,7 @@ table ipv4_exact {
 
 control ingress {
     if(valid(ipv4) and ipv4.ttl>0) {
-        apply(ipv4_exact);
+        apply(ipv4_match);
     }
 }
 
