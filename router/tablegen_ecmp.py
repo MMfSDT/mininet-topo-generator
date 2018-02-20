@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from random import randint
 from random import shuffle
 import subprocess
 
@@ -12,21 +11,6 @@ class TableGenerator:
 		for j in range(K/2)]
 		for i in range(K/2)]
 		for pod in range(K)]
-		
-		self.edge_ip = [[
-		'10.%d.%d.1'%(pod,i)
-		for i in range(K/2)]
-		for pod in range(K)]
-		
-		self.agg_ip = [[
-		'10.%d.%d.1'%(pod,i)
-		for i in range(K/2,K)]
-		for pod in range(K)]
-	
-		self.core_ip = [[
-		'10.%d.%d.%d'%(K,i+1,j+1)
-		for j in range(K/2)]
-		for i in range(K/2)]
 			
 		self.port_offset = port_offset
 		
@@ -63,14 +47,12 @@ class TableGenerator:
 				if self.verbose:
 					print "Configuring se%d%d"%(pod,i)
 
-				cmd = [	'table_set_default ipv4_lpm do_nothing',
-						'table_set_default table_downstream _drop',
-						'table_set_default table_upstream _drop',
-						'table_add ipv4_lpm do_nothing 10.%d.%d.0/24 => '%(pod,i)]
+				cmd = ['table_set_default ipv4_match _drop']
 			
 				#downstream
 				for j in range(self.K/2):
-					cmd.append('table_add table_downstream set_nhop %s => %s %d'%(self.host_ip[pod][i][j],self.host_ip[pod][i][j],j+1))
+					for p in range(8):
+						cmd.append('table_add ipv4_match set_nhop 10.%d.%d.%d/32 %d => %d'%(pod,i,j+2,p,j+1))
 
 				ports = []
 				for p in range(self.K/2):
@@ -82,7 +64,7 @@ class TableGenerator:
 				#upstream
 				for j in range(8):
 					p = ports[j]
-					cmd.append('table_add table_upstream set_nhop %d => %s %d'%(j,self.agg_ip[pod][p],p+1+self.K/2))
+					cmd.append('table_add ipv4_match set_nhop 10.0.0.0/8 %d => %d'%(j,p+1+self.K/2))
 			
 				p = subprocess.Popen(
 					[self.cli_path, '--json', self.json_path, '--thrift-port', str(self.edge_port[pod][i])],
@@ -103,10 +85,7 @@ class TableGenerator:
 				if self.verbose:
 					print "Configuring sa%d%d"%(pod,i)
 					
-				cmd = [	'table_set_default ipv4_lpm do_nothing',
-						'table_set_default table_downstream _drop',
-						'table_set_default table_upstream _drop',
-						'table_add ipv4_lpm do_nothing 10.%d.0.0/16 => '%pod]
+				cmd = ['table_set_default ipv4_match _drop']
 				
 				ports = []
 				for p in range(self.K/2):
@@ -115,16 +94,14 @@ class TableGenerator:
 				shuffle(ports)
 
 				#downstream
-				for npod in range(self.K):
-					for ni in range(self.K/2):
-						for nj in range(self.K/2):
-							if pod==npod:
-								cmd.append('table_add table_downstream set_nhop %s => %s %d'%(self.host_ip[npod][ni][nj],self.edge_ip[pod][ni],ni+1))
+				for j in range(self.K/2):
+					for p in range(8):
+						cmd.append('table_add ipv4_match set_nhop 10.%d.%d.0/24 %d => %d'%(pod,j,p,j+1))
 				
 				#upstream
 				for j in range(8):
 					p = ports[j]
-					cmd.append('table_add table_upstream set_nhop %d => %s %d'%(j,self.core_ip[i][p],p+1+self.K/2))
+					cmd.append('table_add ipv4_match set_nhop 10.0.0.0/8 %d => %d'%(j,p+1+self.K/2))
 			
 				p = subprocess.Popen(
 					[self.cli_path, '--json', self.json_path, '--thrift-port', str(self.agg_port[pod][i])],
@@ -145,16 +122,12 @@ class TableGenerator:
 				if self.verbose:
 					print "\nConfiguring sc%d%d"%(i,j)
 					
-				cmd = [	'table_set_default ipv4_lpm do_nothing',
-						'table_set_default table_downstream _drop',
-						'table_set_default table_upstream _drop',
-						'table_add ipv4_lpm do_nothing 10.0.0.0/8 => ']
+				cmd = ['table_set_default ipv4_match _drop']
 			
-				for npod in range(self.K):
-					for ni in range(self.K/2):
-						for nj in range(self.K/2):
-							#everything is downstream
-							cmd.append('table_add table_downstream set_nhop %s => %s %d'%(self.host_ip[npod][ni][nj],self.agg_ip[npod][ni],npod+1))
+				#everything is downstream
+				for pod in range(self.K):
+					for p in range(8):
+						cmd.append('table_add ipv4_match set_nhop 10.%d.0.0/16 %d => %d'%(pod,p,pod+1))
 			
 				p = subprocess.Popen(
 					[self.cli_path, '--json', self.json_path, '--thrift-port', str(self.core_port[i][j])],
