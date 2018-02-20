@@ -49,7 +49,6 @@ header_type tcp_t {
 
 header_type routing_metadata_t {
     fields {
-        nhop_ipv4 : 32;
         hashVal: 3;
     }
 }
@@ -72,7 +71,6 @@ field_list ipv4_checksum_list {
         ipv4.srcAddr;
         ipv4.dstAddr;
 }
-
 
 field_list_calculation ipv4_checksum {
     input {
@@ -117,59 +115,27 @@ action _drop() {
     drop();
 }
 
-action set_nhop(nhop_ipv4, port) {
-    modify_field(routing_metadata.nhop_ipv4, nhop_ipv4);
+action set_nhop(port) {
     modify_field(standard_metadata.egress_spec, port);
     modify_field(ipv4.ttl, ipv4.ttl - 1);
 }
 
-action do_nothing() {
-}
-
-table table_downstream {
-    reads {
-        ipv4.dstAddr : exact;
-    }
-    actions {
-        set_nhop;
-        _drop;
-    }
-}
-
-table table_upstream
-{
+table ipv4_match {
 	reads {
-		routing_metadata.hashVal: exact;
+		ipv4.dstAddr : lpm;
+        routing_metadata.hashVal : exact;
 	}
 	actions {
 		set_nhop;
-		_drop;
-	}
-}
-
-table ipv4_lpm {
-	reads {
-		ipv4.dstAddr : lpm;
-	}
-	actions {
-		do_nothing;
+        _drop;
 	}
 }
 
 control ingress {
     if(valid(ipv4) and ipv4.ttl>0) {
-        apply(ipv4_lpm){
-        	hit {
-        		apply(table_downstream);
-        	}
-        	miss {
-        		apply(table_upstream);
-        	}
-        }
+        apply(ipv4_match);
     }
 }
 
 control egress {
 }
-
-
