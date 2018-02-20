@@ -190,7 +190,7 @@ if '__main__' == __name__:
 
 	print "\n\n*** Topology setup done."
 	
-	if (args.test is not None):
+	if (args.test is not None):		
 		if (os.path.isfile("kickstart_python.test")):
 			print "*** Running test: {}\n\n".format(args.test)
 			CLI(net, script="kickstart_python.test")
@@ -199,7 +199,7 @@ if '__main__' == __name__:
 			print "*** Skipping test file, it does not exist: {}\n\n".format(args.test)
 	else:
 		print "*** No test to execute."
-
-	print "\n*** To quit, type 'exit' or press 'Ctrl+D'."
-	CLI(net)
+		# The interactive cmd will now only run if there are no tests executed.
+		print "\n*** To quit, type 'exit' or press 'Ctrl+D'."
+		CLI(net)
 	net.stop()

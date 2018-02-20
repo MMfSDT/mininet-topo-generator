@@ -4,6 +4,7 @@ kickstart_python.test
 
 # Ignore .pcap outputs.
 s*.pcap
+1K-10.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
