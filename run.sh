@@ -23,14 +23,11 @@ set -o allexport
 source env.sh
 set +o allexport
 
-# Quit entire script on an error
-set -e
-
 # Clean the mess Mininet makes from a failed exit silently.
 sudo mn -c &> /dev/null
 
 # Clean old .pcap traces in case of errors.
-sudo rm s*.pcap
+rm s*.pcap
 
 # Find the test script, if indicated.
 # Store arguments first as we're mutating it.
@@ -113,13 +110,13 @@ TOPO_EXEC_PATH=$TOPO_EXEC_PATH
 TOPO_CLI_PATH=$TOPO_CLI_PATH
 
 # Then finally run the generator, passing fully all arguments.
-    ./topogen.py "$@" --exec_path $TOPO_EXEC_PATH --json_path $TOPO_JSON_PATH --cli_path $TOPO_CLI_PATH --tablegen_path $TOPO_TABLEGEN_PATH
+    ./topogen.py "$@" --exec_path $TOPO_EXEC_PATH --json_path $TOPO_JSON_PATH --cli_path $TOPO_CLI_PATH --tablegen_path $TOPO_TABLEGEN_PATH || exit
 
 # Clean the mess again after exiting, silently.
 sudo mn -c &> /dev/null
 
 # Run the postprocessing file, then delete all traces.
 if [[ ! -z "$post" ]]; then
-    sudo -u $SUDO_USER ./$post "$@"
+    sudo -u $SUDO_USER ./$post "$@" || exit
     rm s*.pcap
 fi
