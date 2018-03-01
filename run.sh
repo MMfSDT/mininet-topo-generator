@@ -23,6 +23,9 @@ set -o allexport
 source env.sh
 set +o allexport
 
+# Quit entire script on an error
+set -e
+
 # Clean the mess Mininet makes from a failed exit silently.
 sudo mn -c &> /dev/null
 
