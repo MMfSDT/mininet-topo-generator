@@ -80,6 +80,9 @@ if [ "$router" == "static" ]; then
 elif [[ "$router" == "ecmp" ]]; then
     TOPO_JSON_PATH=$TOPO_JSON_ECMP_PATH
     TOPO_TABLEGEN_PATH=$TOPO_TABLEGEN_ECMP_PATH
+elif [[ "$router" == "ps" ]]; then
+    TOPO_JSON_PATH=$TOPO_JSON_PS_PATH
+    TOPO_TABLEGEN_PATH=$TOPO_TABLEGEN_PS_PATH
 else
     echo "run.sh: error setting up router: unknown value \"$router\""
     exit 1
