@@ -164,25 +164,25 @@ if '__main__' == __name__:
 	
 	
 
-	linkopt = {'bw': 10}
+	linkopt = {'bw': 20}
     
 	#host to edge
 	for pod in range(K):
 		for i in range(K/2):
 			for j in range(K/2):
-				net.addLink(host[pod][i][j],edge[pod][i])
+				net.addLink(host[pod][i][j],edge[pod][i],cls=TCLink,**linkopt)
 
 	#edge to aggregate
 	for pod in range(K):
 		for i in range(K/2):
 			for j in range(K/2):
-				net.addLink(edge[pod][i],agg[pod][j])
+				net.addLink(edge[pod][i],agg[pod][j],cls=TCLink,**linkopt)
 
 	#aggregate to core
 	for pod in range(K):
 		for i in range(K/2):
 			for j in range(K/2):
-				net.addLink(agg[pod][i],core[i][j])
+				net.addLink(agg[pod][i],core[i][j],cls=TCLink,**linkopt)
 				
 	
 	net.build()
