@@ -26,6 +26,9 @@ set +o allexport
 # Clean the mess Mininet makes from a failed exit silently.
 sudo mn -c &> /dev/null
 
+# Clean old .pcap traces in case of errors.
+sudo rm s*.pcap
+
 # Find the test script, if indicated.
 # Store arguments first as we're mutating it.
 args=("$@")

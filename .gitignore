@@ -2,9 +2,14 @@
 env.sh
 kickstart_python.test
 
+
 # Ignore .pcap outputs.
 s*.pcap
+
+# Ignore log files
 1K-10.txt
+nohup.out
+time.log
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
