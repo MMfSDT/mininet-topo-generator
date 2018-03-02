@@ -47,7 +47,7 @@ class TableGenerator:
 				if self.verbose:
 					print "Configuring se%d%d"%(pod,i)
 
-				cmd = ['table_set_default ipv4_match set_nhop_random %s'%(self.K)]
+				cmd = ['table_set_default ipv4_match set_nhop_random %s'%(self.K/2)]
 			
 				#downstream
 				for j in range(self.K/2):
@@ -72,7 +72,7 @@ class TableGenerator:
 				if self.verbose:
 					print "Configuring sa%d%d"%(pod,i)
 					
-				cmd = ['table_set_default ipv4_match set_nhop_random %s'%(self.K)]
+				cmd = ['table_set_default ipv4_match set_nhop_random %s'%(self.K/2)]
 
 				#downstream
 				for j in range(self.K/2):
@@ -97,7 +97,7 @@ class TableGenerator:
 				if self.verbose:
 					print "\nConfiguring sc%d%d"%(i,j)
 					
-				cmd = ['table_set_default ipv4_match set_nhop_random %s'%(self.K)]
+				cmd = ['table_set_default ipv4_match set_nhop_random %s'%(self.K/2)]
 			
 				#everything is downstream
 				for pod in range(self.K):
