@@ -201,17 +201,17 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "set_nhop_random",
+            "name": "set_nhop",
             "id": 0,
             "runtime_data": [
                 {
-                    "name": "port_cnt",
+                    "name": "port",
                     "bitwidth": 9
                 }
             ],
             "primitives": [
                 {
-                    "op": "modify_field_rng_uniform",
+                    "op": "modify_field",
                     "parameters": [
                         {
                             "type": "field",
@@ -219,33 +219,6 @@
                                 "standard_metadata",
                                 "egress_spec"
                             ]
-                        },
-                        {
-                            "type": "expression",
-                            "value": {
-                                "type": "expression",
-                                "value": {
-                                    "op": "+",
-                                    "left": {
-                                        "type": "expression",
-                                        "value": {
-                                            "op": "/",
-                                            "left": {
-                                                "type": "local",
-                                                "value": 0
-                                            },
-                                            "right": {
-                                                "type": "hexstr",
-                                                "value": "0x2"
-                                            }
-                                        }
-                                    },
-                                    "right": {
-                                        "type": "hexstr",
-                                        "value": "0x1"
-                                    }
-                                }
-                            }
                         },
                         {
                             "type": "runtime_data",
@@ -288,17 +261,17 @@
             ]
         },
         {
-            "name": "set_nhop",
+            "name": "set_nhop_random",
             "id": 1,
             "runtime_data": [
                 {
-                    "name": "port",
+                    "name": "port_cnt",
                     "bitwidth": 9
                 }
             ],
             "primitives": [
                 {
-                    "op": "modify_field",
+                    "op": "modify_field_rng_uniform",
                     "parameters": [
                         {
                             "type": "field",
@@ -308,8 +281,54 @@
                             ]
                         },
                         {
-                            "type": "runtime_data",
-                            "value": 0
+                            "type": "hexstr",
+                            "value": "0x0"
+                        },
+                        {
+                            "type": "expression",
+                            "value": {
+                                "type": "expression",
+                                "value": {
+                                    "op": "-",
+                                    "left": {
+                                        "type": "local",
+                                        "value": 0
+                                    },
+                                    "right": {
+                                        "type": "hexstr",
+                                        "value": "0x1"
+                                    }
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "op": "add_to_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "standard_metadata",
+                                "egress_spec"
+                            ]
+                        },
+                        {
+                            "type": "expression",
+                            "value": {
+                                "type": "expression",
+                                "value": {
+                                    "op": "+",
+                                    "left": {
+                                        "type": "local",
+                                        "value": 0
+                                    },
+                                    "right": {
+                                        "type": "hexstr",
+                                        "value": "0x1"
+                                    }
+                                }
+                            }
                         }
                     ]
                 },

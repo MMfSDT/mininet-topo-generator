@@ -75,9 +75,8 @@ parser start {
 }
 
 action set_nhop_random(port_cnt) {
-    modify_field_rng_uniform(standard_metadata.egress_spec, port_cnt/2+1, port_cnt);
-    //add_to_field(standard_metadata.egress_spec, port_cnt);
-    //modify_field(standard_metadata.egress_spec, 1);
+    modify_field_rng_uniform(standard_metadata.egress_spec, 0, port_cnt-1);
+    add_to_field(standard_metadata.egress_spec, port_cnt+1);
     modify_field(ipv4.ttl, ipv4.ttl - 1);
 }
 
