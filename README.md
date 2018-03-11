@@ -106,7 +106,7 @@ Each link connected to a router is assigned a port for that router. For the foll
 * For an aggregate router `sa<POD><I>`, the first K/2 ports is assigned to edge router `se<POD><p>`, and the last K/2 ports is assigned to core router `sc<I><p-(K/2)>`.
 * For a core router `sc<I><J>`, the ports are assigned to aggregate router `sa<p><I>`.
 
-The interfaces are similary assigned, but from `eth1` to `eth<K>` instead of 0 to K-1.
+The interfaces are similarly assigned, but from `eth1` to `eth<K>` instead of 0 to K-1.
 ### Thrift Port
 Thrift ports are assigned for each router, and can be used to communicate and debug with the router. The following describes how the thrift ports are assigned:
 * The first thrift port is 10000, and is assigned to se00. Succeeding ports are increasing in increments of 1.
