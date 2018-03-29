@@ -46,6 +46,7 @@ The same topology can be generated with differing switch behavior. To run the to
 #               [--proto tcp|mptcp {mptcp}]
 #               [--pmanager fullmesh|ndiffports {fullmesh}]
 #               [--diffports num_diff_ports {1}]
+#               [--juggler]
 #               [--payloadsize query|long|short {short}]
 #               [--runcount num_counts {10}]
 #       Make sure to set env.sh first before proceeding.
@@ -62,6 +63,7 @@ where
 * `--proto` defines the protocol running on hosts (`tcp|mptcp`, defaults to `mptcp`),
 * `--pmanager` defines the MPTCP Path Manager used (`fullmesh|ndiffports`, defaults to `fullmesh`, note that `--proto` must be set to `mptcp`),
 * `--diffports` defines the how many ports will `ndiffports` use (defaults to `1`, note that `--proto` must be set to `mptcp` and `--pmanager` must be set to `ndiffports`),
+* `--juggler` specifies if this run has Juggler enabled,
 * `--payloadsize` sets the flow size (`query|long|short`, defaults to `short`),
 * `num_counts` defines how many tests per pair will be made (defaults to `10`).
 

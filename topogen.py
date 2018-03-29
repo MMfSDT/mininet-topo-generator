@@ -47,6 +47,7 @@ parser.add_argument('--K', default='4', type=int, metavar='num_ports', help='num
 parser.add_argument('--proto', default='mptcp', type=str, metavar='tcp|mptcp', help='configure host protocol between tcp and mptcp. defaults to mptcp.')
 parser.add_argument('--pmanager', default='fullmesh', type=str, metavar='fullmesh|ndiffports', help='specify a MPTCP path manager. defaults to fullmesh.')
 parser.add_argument('--diffports', default=1, type=int, metavar='num_diff_ports', help='if --pmanager is set to ndiffports, set diffports here. defaults to 1.')
+parser.add_argument('--juggler', action='store_true', help='specify if running Juggler or not. defaults to false.')
 parser.add_argument('--payloadsize', default='short', type=str, metavar='query|long|short', help='specify flow size. defaults to short.')
 parser.add_argument('--runcount', default=10, type=int, metavar='num_counts', help='specify how many tests should be done per pair. defaults to 10.')
 parser.add_argument('--exec_path', default='../behavioral-model/targets/simple_router/simple_router', type=str, help='provide the path to the simple_router executable')
