@@ -21,3 +21,4 @@ __pycache__/
 
 # This was a debugging script.
 x.sh
+.vscode/
