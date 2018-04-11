@@ -123,7 +123,7 @@ else
 fi
 
 echo "\"payloadsize\": \"$payloadsize\"," >> ../network-tests/logs/args.txt
-echo "\"runcount\": \"$runcount\"" >> ../network-tests/logs/args.txt
+echo "\"runcount\": \"$runcount\"," >> ../network-tests/logs/args.txt
 echo "\"mode\": \"$mode\"" >> ../network-tests/logs/args.txt
 echo "}" >> ../network-tests/logs/args.txt
 
