@@ -16,6 +16,7 @@
 #               [--juggler]
 #               [--payloadsize query|long|short {short}]
 #               [--runcount num_counts {10}]
+#               [--mode onetoone|onetomany {onetoone}]
 #       Make sure to set env.sh first before proceeding.
 ############################################################################################
 
@@ -47,6 +48,7 @@ while [[ "$#" > 0 ]]; do case $1 in
     --juggler) juggler="true";;
     --payloadsize) payloadsize="$2"; shift;;
     --runcount) runcount="$2"; shift;;
+    --mode) mode="$2"; shift;;
     esac; shift
 done
 
@@ -61,6 +63,7 @@ if [[ -z "$pmanager" ]]; then pmanager="fullmesh"; fi
 if [[ -z "$diffports" ]]; then diffports="1"; fi
 if [[ -z "$payloadsize" ]]; then payloadsize="short"; fi
 if [[ -z "$runcount" ]]; then runcount="10"; fi
+if [[ -z "$mode" ]]; then mode="onetoone"; fi
 
 # Quit the script if it is run with a post-processing script (--post) without pcap-logging enabled (--pcap).
 if [[ ! -z "$post" ]] && [[ -z "$pcap" ]]; then
@@ -87,7 +90,7 @@ fi
 mn -c &> /dev/null
 
 # Clean old .pcap traces in case of errors.
-rm s*.pcap
+rm s*.pcap &> /dev/null
 
 # It is necessary to create a source file for Mininet to parse.
 #   This automatically generated file is at "./kickstart_python.test"
@@ -121,6 +124,7 @@ fi
 
 echo "\"payloadsize\": \"$payloadsize\"," >> ../network-tests/logs/args.txt
 echo "\"runcount\": \"$runcount\"" >> ../network-tests/logs/args.txt
+echo "\"mode\": \"$mode\"" >> ../network-tests/logs/args.txt
 echo "}" >> ../network-tests/logs/args.txt
 
 # Prepare topogen.py arguments
@@ -143,5 +147,5 @@ chown $SUDO_USER:$SUDO_USER s*.pcap
 # Run the postprocessing file, then delete all traces.
 if [[ ! -z "$post" ]]; then
     sudo -u $SUDO_USER ./$post "$@" || exit 1
-    rm s*.pcap
+    rm s*.pcap &> /dev/null
 fi
