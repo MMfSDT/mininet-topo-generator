@@ -71,6 +71,12 @@ if [[ ! -z "$post" ]] && [[ -z "$pcap" ]]; then
     exit 1
 fi
 
+# Quit the script if it is run with K < 4 and mode of `onetomany`.
+if (( K < 4 )) && [[ "$mode" == "onetomany" ]]; then
+    echo "run.sh: onetomany does not work on K < 4"
+    exit 1
+fi
+
 # Set the TOPO_JSON and TOPO_TABLEGEN paths accordingly, quit if incorrect value.
 if [ "$router" == "static" ]; then
     TOPO_JSON_PATH=$TOPO_JSON_SIMPLE_PATH
