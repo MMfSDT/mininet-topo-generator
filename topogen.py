@@ -33,7 +33,6 @@ from router.p4_mininet import P4Switch, P4Host
 
 parser = argparse.ArgumentParser(description='Generates a scalable Fat-tree topology.')
 parser.add_argument('--test', default=None, type=str, metavar='path_to_test', help='specify a test to run. defaults to None.')
-parser.add_argument('--pcap', action='store_true', help='dumps pcap files')
 parser.add_argument('--K', default='4', type=int, metavar='num_ports', help='number of ports per switch. defaults to 4.')
 parser.add_argument('--exec_path', default='../behavioral-model/targets/simple_router/simple_router', type=str, help='provide the path to the simple_router executable')
 parser.add_argument('--json_path', default='./router/simple_router.json', type=str, help='provide the path to the behavioral json')
@@ -107,7 +106,7 @@ if '__main__' == __name__:
          sw_path = exec_path,
         json_path = json_path,
         thrift_port = edge_port[pod][i],
-        pcap_dump = args.pcap)
+        pcap_dump = True)
     for i in range(K/2)]
     for pod in range(K)]
 
@@ -117,7 +116,7 @@ if '__main__' == __name__:
         sw_path = exec_path,
         json_path = json_path,
         thrift_port = agg_port[pod][i],
-        pcap_dump = args.pcap)
+        pcap_dump = True)
     for i in range(K/2)]
     for pod in range(K)]
 
@@ -127,7 +126,7 @@ if '__main__' == __name__:
         sw_path = exec_path,
         json_path = json_path,
         thrift_port = core_port[i][j],
-        pcap_dump = args.pcap)
+        pcap_dump = True)
     for j in range(K/2)]
     for i in range(K/2)]
 

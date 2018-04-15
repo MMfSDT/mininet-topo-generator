@@ -27,6 +27,30 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+# Check the curl version.
+# TODO: Add argument skipping this test.
+
+latestVer=$(curl -s 'https://curl.haxx.se/download/' | grep -oP 'href="curl-\K[0-9]+\.[0-9]+\.[0-9]+' | sort -t. -rn -k1,1 -k2,2 -k3,3 | head -1)
+installedVer=$(curl -V | grep -oP 'curl \K[0-9]+\.[0-9]+\.[0-9]+')
+
+if [[ $latestVer != $installedVer ]]; then
+    echo "Installing curl $latestVer"
+    sudo apt-get build-dep curl
+    mkdir ~/curl
+    pushd ~/curl
+    wget http://curl.haxx.se/download/curl-$latestVer.tar.bz2
+    tar -xvjf curl-$latestVer.tar.bz2
+    cd curl-$latestVer
+
+    ./configure
+    make
+    sudo make install
+
+    sudo ldconfig
+    popd    
+fi
+
+
 # Export all the prerequisite environmental variables for this process.
 set -o allexport
 source env.sh
@@ -65,11 +89,11 @@ if [[ -z "$payloadsize" ]]; then payloadsize="short"; fi
 if [[ -z "$runcount" ]]; then runcount="10"; fi
 if [[ -z "$mode" ]]; then mode="onetoone"; fi
 
-# Quit the script if it is run with a post-processing script (--post) without pcap-logging enabled (--pcap).
-if [[ ! -z "$post" ]] && [[ -z "$pcap" ]]; then
-    echo "run.sh: can't run post-processing script without --pcap"
-    exit 1
-fi
+# # Quit the script if it is run with a post-processing script (--post) without pcap-logging enabled (--pcap).
+# if [[ ! -z "$post" ]] && [[ -z "$pcap" ]]; then
+#     echo "run.sh: can't run post-processing script without --pcap"
+#     exit 1
+# fi
 
 # Quit the script if it is run with K < 4 and mode of `onetomany`.
 if (( K < 4 )) && [[ "$mode" == "onetomany" ]]; then
@@ -128,6 +152,12 @@ else
     echo "\"juggler\": \"false\"," >> ../network-tests/logs/args.txt
 fi
 
+if [[ ! -z "$pcap" ]]; then
+    echo "\"pcap\": \"true\"," >> ../network-tests/logs/args.txt
+else
+    echo "\"pcap\": \"false\"," >> ../network-tests/logs/args.txt
+fi
+
 echo "\"payloadsize\": \"$payloadsize\"," >> ../network-tests/logs/args.txt
 echo "\"runcount\": \"$runcount\"," >> ../network-tests/logs/args.txt
 echo "\"mode\": \"$mode\"" >> ../network-tests/logs/args.txt
@@ -135,8 +165,10 @@ echo "}" >> ../network-tests/logs/args.txt
 
 # Prepare topogen.py arguments
 TOPOGEN_ARGS=(--exec_path $TOPO_EXEC_PATH --json_path $TOPO_JSON_PATH --cli_path $TOPO_CLI_PATH --tablegen_path $TOPO_TABLEGEN_PATH --K $K)
-if [[ ! -z "$pcap" ]]; then TOPOGEN_ARGS+=(--pcap); fi
 if [[ ! -z "$test" ]]; then TOPOGEN_ARGS+=(--test $test); fi
+
+# Remove previous mid.json
+rm ../network-tests/logs/mid.json
 
 # Finally, run topogen.py with the arguments specified above.
 ./topogen.py ${TOPOGEN_ARGS[*]}  || exit 1
@@ -144,9 +176,20 @@ if [[ ! -z "$test" ]]; then TOPOGEN_ARGS+=(--test $test); fi
 # Clean the mess again after exiting, silently.
 mn -c &> /dev/null
 
+# If mid.json wasn't written, assume the test failed.
+if [ ! -f ../network-tests/logs/mid.json ] && [[ ! -z "$post" ]]; then
+    echo "Network testing failed."
+    exit 1
+fi
+
+# Remove the /tmp/ trash from onetomany. Uncomment this if necessary.
+if [[ "$mode" == "onetomany" ]]; then
+    rm /tmp/mmfsdt-*
+fi
+
 # Fix the file ownership of the *.pcap at log files.
 chown $SUDO_USER:$SUDO_USER ../network-tests/logs/args.txt
-chown $SUDO_USER:$SUDO_USER ../network-tests/logs/aggregate.json
+chown $SUDO_USER:$SUDO_USER ../network-tests/logs/aggregate.db
 chown $SUDO_USER:$SUDO_USER ../network-tests/logs/mid.json
 chown $SUDO_USER:$SUDO_USER s*.pcap
 
