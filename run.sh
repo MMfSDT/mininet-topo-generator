@@ -89,12 +89,6 @@ if [[ -z "$payloadsize" ]]; then payloadsize="short"; fi
 if [[ -z "$runcount" ]]; then runcount="10"; fi
 if [[ -z "$mode" ]]; then mode="onetoone"; fi
 
-# # Quit the script if it is run with a post-processing script (--post) without pcap-logging enabled (--pcap).
-# if [[ ! -z "$post" ]] && [[ -z "$pcap" ]]; then
-#     echo "run.sh: can't run post-processing script without --pcap"
-#     exit 1
-# fi
-
 # Quit the script if it is run with K < 4 and mode of `onetomany`.
 if (( K < 4 )) && [[ "$mode" == "onetomany" ]]; then
     echo "run.sh: onetomany does not work on K < 4"

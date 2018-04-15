@@ -57,9 +57,9 @@ The same topology can be generated with differing switch behavior. To run the to
 where 
 
 * `path_to_test` pertains to the test to be ran after generation (defaults to `None`, which goes directly to the Mininet cli),
-* `path_to_post_process_script` pertains to the post-processing script to be ran after testing (defaults to `None`, note that `--pcap` must be set as well),
+* `path_to_post_process_script` pertains to the post-processing script to be ran after testing (defaults to `None`),
 * `router_behavior` changes how switch behave (`static|ecmp|ps`, defaults to `static`),
-* `--pcap` enables `.pcap` logging (necessary for some tests),
+* `--pcap` saves `.pcap` files (makes debugging and network forensics easier),
 * `K` is the size of the Fat-Tree network (`K` is an element of \{2, 4, 8, 16, 32, 64, 128\}; defaults to `4`),
 * `--proto` defines the protocol running on hosts (`tcp|mptcp`, defaults to `mptcp`),
 * `--pmanager` defines the MPTCP Path Manager used (`fullmesh|ndiffports`, defaults to `fullmesh`, note that `--proto` must be set to `mptcp`),
@@ -71,10 +71,10 @@ where
 
 For example,
 ```
-sudo ./run.sh --test ../network-tests/test.py --post ../network-tests/postprocess.py --router static --pcap --K 4 --proto tcp --payloadsize long
+sudo ./run.sh --test ../network-tests/test.py --K 4 --router static --proto tcp --payloadsize query --runcount 5 --post ../network-tests/postprocess.py --juggler --mode onetomany --pcap
 ```
 
-will run FCT and Throughput tests on a FatTree topology with k = 4, with statically-configured routers, and TCP-enabled hosts, with a long flow size. `.pcap` logging is enabled to make the post-processing work. Tests are done 10 times between each host pair, and results are saved on `../network-tests/logs/`
+will run FCT and Throughput tests on a FatTree topology with k = 4, with statically-configured routers, and TCP-enabled hosts, with a query flow size. `.pcap` logging is enabled to make the post-processing work. Tests are done 5 times between each host pair, with test mode `onetomany`, and results are saved on `../network-tests/logs/`
 
 ## Exiting the Script
 To exit from the CLI, enter `exit` or press `Ctrl+D` (`Ctrl+C` doesn't work).
