@@ -11,7 +11,7 @@ sudo apt-get update
 sudo apt-get install tshark
 git clone git://github.com/p4lang/behavioral-model
 cd behavioral-model
-sudo ./install-deps.sh
+sudo ./install_deps.sh
 ./autogen.sh
 ./configure --enable-debugger
 make
